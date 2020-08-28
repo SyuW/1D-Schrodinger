@@ -2,37 +2,52 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def determine_eigenvalues(xs):
-    pass
+def normalize_state(data, dx):
+    data = (data.copy())**2
 
+    running_sum = data[0] + data[-1]
+    for i in range(len(data)):
+        if i % 2 == 0:
+            running_sum += 4*data[i]
+        else:
+            running_sum += 2*data[i]
+
+    return np.sqrt((dx/3)*running_sum)
+    
 
 def calculate_potential(x):
-    # Potential function
-    if abs(x) >= 1:
-        value = 100
-    else:
-        value = 0
-    return value
+    x = x.copy()
+    
+    return np.zeros(len(x))
 
 
-def calculate_curvature(phi_x, V):
-    return 2*coeff*(V - E)*phi_x
+def numerov_method(x, phi, dx, E):
+    x = x.copy()
+    phi = phi.copy()
+
+    g = 2*E*np.ones(len(x))
+    f = 1 + ((dx**2)/12)*g
+
+    for i in np.arange(len(phi))[1:-1]:
+        phi[i+1] = ((12 - 10*f[i])*phi[i] - f[i-1]*phi[i-1]) / f[i+1]
+    
+    return phi
 
 
 def main():
     dx = 0.001
-    x_points = np.arange(-1.5, 1.5, dx)
+    L = 10
+    n = 10
+    xs = np.arange(0, L, dx)
+    E_0 = (n*np.pi)**2 / (2*L**2)
 
-    for x in xs:
-        # First determine curvature at current x
-        curva_x    = calculate_curvature(eigenstate[-1], calculate_potential(x))
-        curva_x_dx = calculate_curvature(eigenstate[-1], calculate_potential(x + dx))
-
-        # Update eigenstate at x + dx
-        eigenstate += [eigenstate[-1] + eigenstate_slope[-1]*dx + 0.5*curva_x*(dx**2)] 
-
-        # Update eigenstate slope at x + dx
-        eigenstate_slope += [eigenstate_slope[-1] + 0.5*(curva_x + curva_x_dx)*dx]
+    phi = np.zeros(len(xs)); phi[1] = 1
+    phi = numerov_method(xs, phi, dx, E_0)
+    phi /= normalize_state(phi, dx)
     
-    plt.plot(xs, np.array(eigenstate[:-1]))
+    plt.plot(xs, phi)
+    plt.grid(True)
     plt.show()
+
+
+main()
