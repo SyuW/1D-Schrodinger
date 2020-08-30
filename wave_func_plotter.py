@@ -39,8 +39,8 @@ class QuantumSystem:
         return V
 
 
-    def solve_wavefunc(self, x, phi, dx, E):
-        '''Solves for the wave function for a given eigen-energy, using Numerov's method'''
+    def solve_TISE(self, x, phi, dx, E):
+        '''Solves the TISE for a given eigen-energy, using Numerov's method'''
 
         x = x.copy()
         phi = phi.copy()
