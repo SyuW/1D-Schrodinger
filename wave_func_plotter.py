@@ -9,7 +9,7 @@ class QuantumSystem:
     '''
 
     def normalize_state(self, data):
-        '''Calculate the normalization factor of quantum state'''
+        '''Calculate the normalization factor of a quantum state'''
 
         data = (data.copy())**2
 
@@ -38,49 +38,98 @@ class QuantumSystem:
         
         return V
 
-    
-    def determine_energies(self):
-        N_x = 1000
-        x = np.linspace(0, 10, N_x)
-
-        middle_diag = np.full(N_x, -2)
-        up_down_diag = np.full(N_x-1, 1)
-
-        V_ij = np.diag(self.calculate_potential(x))
-        K_ij = (np.diag(up_down_diag, 1) + np.diag(up_down_diag, -1) + np.diag(middle_diag)) # / self.dx**2
-
-        H_ij = -K_ij + V_ij
-
-        print(H_ij); print(np.size(H_ij))
-
-        return np.linalg.eig(H_ij)
-
 
     def solve_TISE(self, dx):
         '''Solves the TISE for a given eigen-energy, using Numerov's method'''
 
         x = self.x.copy()
-        phi = self.phi.copy()
-
         V = self.calculate_potential(x)
 
-        g = (2*self.m/self.hbar**2)*(self.E_n - V)
-        f = 1 + ((dx**2)/12)*g
+        tolerance = 10**(-7)
+        boundary_value = 0
 
-        for i in range(len(phi))[1:-1]:
-            phi[i+1] = ((12 - 10*f[i])*phi[i] - f[i-1]*phi[i-1]) / f[i+1]
+        def integrator(energy, pot):
+            phi = self.phi.copy()
+            g = (2*self.m/self.hbar**2)*(energy - pot)
+            f = 1 + ((dx**2)/12)*g
+            for i in range(len(phi))[1:-1]:
+                phi[i+1] = ((12 - 10*f[i])*phi[i] - f[i-1]*phi[i-1]) / f[i+1]
+            return phi
+
+        def count_nodes_of_func(f):
+            node_count = 0
+            for i, val in enumerate(f[:-2]):
+                if f[i+1] * f[i+2] <= 0: # Change of sign indicates presence of node
+                    node_count += 1
+            return node_count
+
+        def bisection_method(nodes_wanted, E_1, E_2, V=V):
+
+            E_trial = (E_2 + E_1) / 2 # Set energy guess to average initially
+            test = integrator(energy=E_trial, pot=V)
+            node_count = count_nodes_of_func(f=test) # The number of nodes + 1 gives corresponding n-th energy eigenvalue
+            while node_count != nodes_wanted:
+                if node_count > nodes_wanted: # The energy guess was too big (overshot)
+                    E_2 = (E_1 + E_2) / 2
+                elif node_count < nodes_wanted: # The energy guess was too small (undershot)
+                    E_1 = (E_1 + E_2) / 2
+                E_trial = (E_1 + E_2) / 2
+                test = integrator(energy=E_trial, pot=V)
+                node_count = count_nodes_of_func(f=test)
+
+            return E_trial
+
+        def construct_energy_guess(energy_number, E_lower, E_upper, V):
+
+            modified_upper = bisection_method(nodes_wanted=energy_number, E_1=E_lower, E_2=E_upper, V=V)
+            modified_lower = bisection_method(nodes_wanted=energy_number-1, E_1=E_lower, E_2=modified_upper, V=V)
+
+            return modified_lower, modified_upper
+            
+        E_lower_limit = 0; E_upper_limit = 2000
+        energy_no = 19
+
+        lower, upper = construct_energy_guess(energy_no, E_lower_limit, E_upper_limit, V)
         
+        E_trial = (upper + lower) / 2
+        print(f"Lower limit: {lower}"); print(f"Upper limit: {upper}")
+        phi = integrator(energy=E_trial, pot=V)
+
+        while abs(phi[-1] - boundary_value) > tolerance:
+            if energy_no % 2 != 0: # Odd energy number will give an even number of nodes
+                #print(f"{E_trial}")
+                if (phi[-1] - boundary_value) < 0: # If negative at end, the energy eigenvalue guess is too high
+                    #print(f"Too high: {phi[-1]}")
+                    upper = (upper + lower) / 2
+                elif (phi[-1] - boundary_value) > 0: # If positive at end, the energy eigenvalue guess is too low
+                    #print(f"Too low: {phi[-1]}")
+                    lower = (upper + lower) / 2
+
+            else: # Even energy number gives odd number of nodes
+                if (phi[-1] - boundary_value) > 0: # If positive at end, the energy eigenvalue guess is too high
+                    #print(f"Too high: {phi[-1]}")
+                    upper = (upper + lower) / 2
+                elif (phi[-1] - boundary_value) < 0: # If negative at end, the energy eigenvalue guess is too low
+                    #print(f"Too low: {phi[-1]}")
+                    lower = (upper + lower) / 2
+
+            E_trial = (upper + lower) / 2
+            phi = integrator(energy=E_trial, pot=V)
+
+        print(f"Found {energy_no}th energy eigenvalue: {E_trial}")
+
         return phi
+        
 
 
     def __init__(self):
         
-        L = 10; n = 3
-        self.dx = 0.001
+        L = 1; n = 1
+        self.dx = 0.0001
 
         self.hbar = 1
         self.m = 1
-        self.ang_freq = 2
+        self.ang_freq = 1
 
         self.E_n = (n*np.pi)**2 / (2*L**2) #infinite well
 
@@ -88,7 +137,7 @@ class QuantumSystem:
         self.time_elapsed = 0
 
         self.phi = np.zeros(len(self.x))
-        self.phi[1] = 1
+        self.phi[1] = 0.00001
 
         self.phi = self.solve_TISE(self.dx)
         self.phi /= self.normalize_state(self.phi)
@@ -101,42 +150,8 @@ def main():
     fig = plt.figure()
     ax  = plt.axes(xlim=(min(qs.x)-1, max(qs.x)+1), ylim=(-y_bound, y_bound))
     ax.grid()
-    line, = ax.plot([], [], lw=2)
-
-    dt = (1./30)
-
-
-    def init():
-        line.set_data([], [])
-        return line,
-
-
-    def animate(i):
-        x = qs.x
-        y = qs.phi * np.cos(qs.ang_freq * dt * i)
-        line.set_data(x, y)
-        return line,
-
-
-    from time import time
-    t0 = time()
-    animate(0)
-    t1 = time()
-    interval = 1000 * dt - (t1 - t0)
-
-    frame_no = int((2*np.pi/qs.ang_freq) * (1 / dt)) + 1
-
-    ani = animation.FuncAnimation(fig, animate, init_func=init, frames=frame_no, interval=interval, blit=True)
-
+    line, = ax.plot(qs.x, qs.phi)
     plt.show()
 
 
-def test():
-    qs = QuantumSystem()
-    w, v = qs.determine_energies()
-
-    print(w)
-    print(np.linalg.eig(np.diag(np.arange(3))))
-
-
-test()
+main()
