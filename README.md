@@ -4,7 +4,7 @@ The motivation is to gain intuition for the dynamics of bound quantum states in 
 solving differential equations numerically 😃!
 
 ## First phase: Solve the 1D TISE for arbitrary potential ##
-One way to construct a time-varying quantum state is through superpositions of eigenstates of the system's Hamiltonian operator, which form a complete orthogonal basis. Looking qualitatively at how the energy eigenstates depend on potential shape is also pretty instructive. Hence,
+One way to construct a time-varying quantum state is through superpositions of eigenstates of the system's Hamiltonian operator, which form a complete orthogonal basis. Looking qualitatively at how the energy eigenstate probability densities depend on potential shape is also pretty instructive. Hence,
 we need to solve the 1D time independent Schrodinger equation (TISE), a second order ODE.
 
 Some methods I've tried:
