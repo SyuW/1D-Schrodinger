@@ -24,7 +24,7 @@ $$
   \psi(x,t) = \sum_{n}c_n(0)e^{iE_n{t}/\hbar}\phi_n(x)
 $$
 
-`schrodinger.py` allows you to provide coefficients $c_n(0)$. 
+All that's needed is the initial vector of coefficients $c_n(0)$, which can be provided to `schrodinger.py` as a command line argument. 
 
 ## Third phase: GUI? ##
 In the future I intend to develop a GUI for the program instead of requiring command line input. I'm still trying to work out the layout of the interface.
