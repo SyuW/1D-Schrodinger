@@ -13,7 +13,9 @@ Some methods I've tried:
 - Diagonalization approach
 
 Of the methods I've tried, **diagonalization** has been the most numerically stable as well as being pretty straightforward to implement.
-This is the approach I'll mostly likely be using moving forward for solving the 1D TISE. 
+This is the approach I'll mostly likely be using moving forward for solving the 1D TISE.
+
+![Example 1](samples/linear_potential_well.png?raw=true "Linear Potential Well")
 
 ## Second phase: Time evolution ##
 To be continued.
