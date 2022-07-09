@@ -27,7 +27,7 @@ $$
 `schrodinger.py` allows you to provide coefficients of the superposition in terms of energy eigenstates. 
 
 ## Third phase: GUI? ##
-To be continued.
+In the future I intend to develop a GUI for the program instead of requiring command line input. I'm still trying to work out the layout of the interface.
 
 # Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
