@@ -13,7 +13,7 @@ Some methods I've tried:
 - Diagonalization approach
 
 Of the methods I've tried, **diagonalization** has been the most numerically stable as well as being pretty straightforward to implement.
-This is the approach I'll mostly likely be using moving forward for solving the 1D TISE.  
+This is the approach I'll mostly likely be using moving forward for solving the 1D TISE. 
 
 ## Second phase: Time evolution ##
 To be continued.
@@ -26,4 +26,4 @@ A collection of resources I referenced and took inspiration from throughout this
 - Numerical quantum mechanics by Tobin Fricke: http://www.pas.rochester.edu/~tobin/notebook/2009/02/12/html/eigfunc.html. Uses the diagonalization approach for solving the 1D TISE. Finds the eigenvalues/eigenstates iteratively by applying the Hamiltonian as an iterated map acting on a random vector. 
 - https://github.com/FelixDesrochers/Numerov. Has an implementation of Numerov's method for solving the 1D TISE for bound states as well as pretty figures.
 - Professor Qijing Zheng's Website: http://staff.ustc.edu.cn/~zqj/post/. Has a couple of useful posts/code for solving the 1D SE, also has nice writing about other topics in computational condensed matter/solid state physics if you're interested in that.
-- Bound State of One Dimensional Potential by Numerov Method by D G Kenhere: http://physics.unipune.ac.in/~phyed/23.1/23.1_computation.pdf. Goes into some numerical instability issues with the Numerov method, such as when integrating too far into the classically forbidden region of a potential.
+- Bound State of One Dimensional Potential by Numerov Method by D G Kenhere: http://physics.unipune.ac.in/~phyed/23.1/23.1_computation.pdf. Goes into some numerical instability issues with the Numerov method, such as when integrating too far into the classically forbidden region of a potential. Finds a forwards and backwards integrated solution and then imposes matching condition based off the continuity of second derivative.
