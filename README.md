@@ -18,7 +18,7 @@ This is the approach I'll mostly likely be using moving forward for solving the 
 ![Example 1](samples/linear_potential_well.png?raw=true "Linear Potential Well")
 
 ## Second phase: Time evolution ##
-To be continued.
+`schrodinger.py` allows you to provide coefficients of the superposition in terms of energy eigenstates.
 
 ## Third phase: GUI? ##
 To be continued.
