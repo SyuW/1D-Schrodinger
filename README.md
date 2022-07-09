@@ -18,13 +18,13 @@ This is the approach I'll mostly likely be using moving forward for solving the 
 ![Example 1](samples/linear_potential_well.png?raw=true "Linear Potential Well")
 
 ## Second phase: Time evolution ##
-If the energy levels considered are smaller than the potential well depth, they are discrete, allowing us to write the time-varying state as a sum:
+If the energy levels considered are smaller than the potential well depth, they are discrete, allowing us to write the time-varying state as a sum over energy eigenstates:
 
 $$
   \psi(x,t) = \sum_{n}c_n(0)e^{iE_n{t}/\hbar}\phi_n(x)
 $$
 
-`schrodinger.py` allows you to provide coefficients of the superposition in terms of energy eigenstates. 
+`schrodinger.py` allows you to provide coefficients $c_n(0)$. 
 
 ## Third phase: GUI? ##
 In the future I intend to develop a GUI for the program instead of requiring command line input. I'm still trying to work out the layout of the interface.
