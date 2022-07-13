@@ -24,7 +24,7 @@ $$
   \psi(x,t) = \sum_{n}c_n(0)e^{iE_n{t}/\hbar}\phi_n(x)
 $$
 
-All that's needed is the initial vector of coefficients $c_n(0)$, which can be provided to `schrodinger.py` as a command line argument. 
+Although $\braket{x}$ and $\braket{p}$ are constant for the $\phi_n(x)$'s, in general they will be time-varying for superpositions. All that's needed is the initial vector of coefficients $c_n(0)$, which can be provided to `schrodinger.py` as a command line argument. Alternatively, we can solve the time dependent Schrodinger equation directly given some initial waveform. 
 
 ## Third phase: GUI? ##
 In the future I intend to develop a GUI for the program instead of requiring command line input. I'm still trying to work out the layout of the interface.
