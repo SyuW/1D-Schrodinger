@@ -19,7 +19,7 @@ class Hamiltonian():
         self.domain = domain
 
 
-    # solve method for solving the Hamiltonian
+    # method for solving the TISE for the Hamiltonian
     def tise_solve(self, n_eigenstates_to_find):
         """
         Solve the time-independent version of the Schrodinger equation.
@@ -59,15 +59,14 @@ class Hamiltonian():
             print(f"Energy Level {ii}: {energies[ii]}")
 
         return energies[:n_eigenstates_to_find], eigenstates[:, :n_eigenstates_to_find]
+    
+
+    # method for solving the ordinary Schrodinger equation given the Hamiltonian
+    def se_solve(self):
+        return
 
 
-# helper function for drawing a state onto an Axes object when updating through key press
-def plot_state(linedata, state):
-    # note that there is a modulus squared because of the Born rule
-    linedata
-
-
-def draw_figure(energies, eigenstates, V, domain):
+def draw_figure(energies, eigenstates, V, domain, density):
     """
     Draw a double figure with left plot containing the energy spectrum and right
     plot containing the stationary states for a given potential
@@ -82,26 +81,45 @@ def draw_figure(energies, eigenstates, V, domain):
     # for updating the plot
     def on_press(event):
         if event.key in ["left", "right"]:
-            state_index = whats_the_current_state["current"]
+            n = whats_the_current_state["current"]
             if event.key == 'left':
                 inc = -1
             if event.key == 'right':
                 inc = 1
             # first change the spectrum plot, meaning change the selected line's color to red 
-            spectral_lines[state_index].set_color("black")
-            state_index = (state_index + inc) % num_eigenstates
-            spectral_lines[state_index].set_color("red")
+            spectral_lines[n].set_color("black")
+            n = (n + inc) % num_eigenstates
+            spectral_lines[n].set_color("red")
             # second, change the eigenstates plot
-            current_state.set_ydata(eigenstates[:, state_index] ** 2 + energies[state_index])
-            fill = fill_dict["fill"]
-            fill.remove()
-            fill = ax2.fill_between(xgrid, energies[state_index],
-                                    energies[state_index] + eigenstates[:, state_index] ** 2,
+            # plot the probability density
+            if density:
+                ax2.set_title(rf"Probability density of eigenstate $|\psi_{{{n}}}|^2$")
+                current_state.set_ydata(eigenstates[:, n] ** 2 + energies[n])
+                fill = fill_dict["fill"]
+                fill.remove()
+                fill = ax2.fill_between(xgrid, energies[n],
+                                    energies[n] + eigenstates[:, n] ** 2,
                                     color="blue", alpha=0.4)
-            fill_dict["fill"] = fill
-            whats_the_current_state["current"] = state_index
-            ax2.set_title(rf"Probability density of eigenstate $|\psi_{{{state_index}}}|^2$")
+                fill_dict["fill"] = fill
+            # animate the real and imaginary parts of the eigenstate (more involved)
+            else:
+                ax2.set_title(rf"Real and imaginary parts of eigenstate $\psi_{{{n}}}$")
+                # ani = animation.FuncAnimation(fig=fig, func=update, fargs=(energies[0],n,), 
+                #                               frames=tot_frames, interval=20, blit=True)
+            
+            whats_the_current_state["current"] = n
+
             fig.canvas.draw()
+
+    # function for updating 
+    def update(frame):
+        n = whats_the_current_state["current"]
+        re = energies[n] + np.cos(energies[n] * t[frame]) * eigenstates[:, n]
+        im = energies[n] + np.sin(energies[n] * t[frame]) * eigenstates[:, n]
+        real_part.set_ydata(re)
+        im_part.set_ydata(im)
+
+        return real_part, im_part
 
     # set up the figure and axes
     fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12,8), 
@@ -114,7 +132,7 @@ def draw_figure(energies, eigenstates, V, domain):
     # spectrum plot
     top = np.max(energies) * 1.5
     ax1.set_ylabel("Energy, E")
-    ax1.set_ylim([0, top])
+    ax1.set_ylim([-1.2, top])
     # don't need the x-axis ticks and labels
     ax1.set_xticks([])
     ax1.set_xticklabels([])
@@ -125,17 +143,31 @@ def draw_figure(energies, eigenstates, V, domain):
         spectral_lines.append(spec)
 
     spectral_lines[0].set_color("red")
-            
-    ax2.set_title(rf"Probability density of eigenstate $|\psi_{{{0}}}|^2$")
+
     ax2.set_xlabel("Position, x")
-    ax2.set_ylabel("Probability density")
     ax2.set_xlim([domain[0], domain[1]])
     # plot the potential function
     potl, = ax2.plot(xgrid, V(xgrid), color="orange", zorder=5)
-    # initially plot the ground state probability density on the eigenstates plot
-    current_state, = ax2.plot(xgrid, energies[0] + eigenstates[:, 0] ** 2, color="blue", zorder=10)
-    fill = ax2.fill_between(xgrid, energies[0], energies[0] + eigenstates[:, 0] ** 2, color="blue", alpha=0.4)
-    fill_dict = {"fill": fill}
+    # plot the ground state probability density on the eigenstates plot
+    if density:
+        ax2.set_title(rf"Probability density of eigenstate $|\psi_{{{0}}}|^2$")
+        ax2.set_ylabel("Probability density")
+        current_state, = ax2.plot(xgrid, energies[0] + eigenstates[:, 0] ** 2, color="blue", zorder=10)
+        fill = ax2.fill_between(xgrid, energies[0], energies[0] + eigenstates[:, 0] ** 2, color="blue", alpha=0.4)
+        fill_dict = {"fill": fill}
+    # otherwise, animate the real and imaginary parts of the eigenstate (more involved)
+    else:
+        ax2.set_title(rf"Real and imaginary parts of eigenstate $\psi_{{{0}}}$")
+        ax2.set_ylabel("Eigenstate")
+        real_part, = ax2.plot(xgrid, energies[0] + eigenstates[:, 0], color="blue", zorder=10, label="Real part")
+        im_part, = ax2.plot(xgrid, energies[0] + eigenstates[:, 0] * 0, color="pink", zorder=10, label="Imaginary part")
+        ax2.legend()
+        period = 2 * np.pi / energies[0]
+        tot_frames = 90
+        t = np.linspace(0, period, tot_frames)
+        ani = animation.FuncAnimation(fig=fig, func=update, frames=tot_frames, interval=20, blit=True)
+
+    plt.show()
 
     return fig
 
@@ -165,7 +197,7 @@ if __name__ == "__main__":
     # anharmonic oscillator
     aho = lambda x: 0.25 * x ** 2 + 0.5 * x ** 4
     # double-well potential
-    dwp = lambda x: 0.5 * (x ** 2 - 1) ** 2
+    dwp = lambda x, a: 0.5 * (x ** 2 - a ** 2) ** 2
     # linear ramp
     lr = lambda x, k: k * x * (x > 0)
     # morse potential
@@ -182,8 +214,8 @@ if __name__ == "__main__":
     parser.add_argument("-d", "--domain", nargs="?", required=False, help="compact interval on which the solution is found")
     parser.add_argument("-N", type=int, metavar=4, nargs="?", required=False, const=1, default=4,
                         help="Number of energy states to find")
-    parser.add_argument("--densities", action='store_true')
-    parser.add_argument("-v", type=bool, metavar="N", nargs="?", required=False, const=1, default=True,
+    parser.add_argument("--use_density", action='store_true', default=False)
+    parser.add_argument("-v", action='store_true', required=False, default=True,
                         help="Verbose mode")
     
     # get the command line arguments
@@ -199,6 +231,6 @@ if __name__ == "__main__":
     model = Hamiltonian(potential=pot_func, domain=domain_interval)
 
     v, w = model.tise_solve(args.N)
-    finished_plot = draw_figure(v, w, V=pot_func, domain=domain_interval)
+    finished_plot = draw_figure(v, w, V=pot_func, domain=domain_interval, density=args.use_density)
 
     plt.show(block=True)
