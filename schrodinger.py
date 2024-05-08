@@ -1,6 +1,8 @@
-from scipy.integrate import odeint, simps, simpson
-from scipy.linalg import eigh
 import argparse
+import sys
+
+from scipy.integrate import simps
+from scipy.linalg import eigh
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -33,16 +35,20 @@ class Hamiltonian():
 
         H * v = E * v
 
-        where H is the Hamiltonian defined by
-
-        H = -0.5 * D^2 + V(x)
+        where H is the Hamiltonian defined by H = -0.5 * D^2 + V(x). 
+        Note that the fact the (0,0) and (N-1, N-1) entries of the
+        kinetic energy operator are equal to -2 means that Dirichlet boundary conditions are
+        being applied to the endpoints of the interval.  
         """
 
         x_vals = np.linspace(self.domain[0], self.domain[1], self.num_points)
 
         dx = x_vals[1] - x_vals[0]
-        off = np.ones(self.num_points - 1) # off diagonals
-        on = np.ones(self.num_points) # on diagonal
+        # off diagonals
+        off = np.ones(self.num_points - 1)
+        # on diagonal
+        on = np.ones(self.num_points)
+        # kinetic energy operator
         d_squared = 0.5 * (np.diag(off, k=1) - 2 * np.diag(on, k=0) + np.diag(off, k=-1)) / (dx ** 2)
 
         # Hamiltonian
@@ -52,9 +58,11 @@ class Hamiltonian():
         energies, eigenstates = eigh(a=H, subset_by_index=[0,n_eigenstates_to_find-1])
 
         # normalize with simpson's rule
+        print("#", "-"*30, "Energy Levels", "-"*30, "#")
         for ii in range(n_eigenstates_to_find):
             eigenstates[:, ii] /= np.sqrt(simps(eigenstates[:, ii] ** 2, x=x_vals))
             print(f"Energy Level {ii}: {energies[ii]}")
+        print("#", "-"*75, "#")
 
         return energies[:n_eigenstates_to_find], eigenstates[:, :n_eigenstates_to_find]
     
@@ -99,29 +107,33 @@ def animate_figure(energies, eigenstates, V, domain, density, num_points):
             # second, change the eigenstates plot
             # plot the probability density
             if density:
-                ax2.set_title(rf"Probability density of eigenstate $|\psi_{{{n}}}|^2$")
+                eig_ax.set_title(rf"Probability density of eigenstate $|\psi_{{{n}}}|^2$")
                 current_state.set_ydata(eigenstates[:, n] ** 2 + energies[n])
                 fill = fill_dict["fill"]
                 fill.remove()
-                fill = ax2.fill_between(xgrid, energies[n],
+                fill = eig_ax.fill_between(xgrid, energies[n],
                                                energies[n] + eigenstates[:, n] ** 2,
                                                color="blue", alpha=0.4)
                 fill_dict["fill"] = fill
 
             # animate the real and imaginary parts of the eigenstate (more involved)
             else:
-                ax2.set_title(rf"Real and imaginary parts of eigenstate $\psi_{{{n}}}$")
+                eig_ax.set_title(rf"Real and imaginary parts of eigenstate $\psi_{{{n}}}$", fontsize=14)
                 real_part.set_ydata(energies[n] + eigenstates[:, n])
                 im_part.set_ydata(energies[n] + np.zeros_like(eigenstates[:, n]))
-                ax2.legend(loc="best")
+                eig_ax.legend(loc="best")
 
             fig.canvas.draw()
 
     # function for updating during animation loop
     def update(frame):
         n = whats_the_current_state["current"]
-        norm_freq = energies[n] / energies[-1] # normalized frequency
-        period = 2 * np.pi / (energies[0] / energies[-1])
+        # we can always shift the entire spectrum by adding a constant to the Hamiltonian
+        # let us do so such that the temporal frequency of the ground state is exactly 1
+        fundamental_freq = 1
+        shift = fundamental_freq - energies[0]
+        norm_freq = energies[n] + shift # normalized frequency
+        period = 2 * np.pi / fundamental_freq
         t = np.linspace(0, period, tot_frames)
         re = energies[n] + np.cos(norm_freq * t[frame]) * eigenstates[:, n]
         im = energies[n] + np.sin(norm_freq * t[frame]) * eigenstates[:, n]
@@ -131,49 +143,49 @@ def animate_figure(energies, eigenstates, V, domain, density, num_points):
         return real_part, im_part
 
     # set up the figure and axes
-    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, figsize=(12,8), 
-                                   gridspec_kw={'width_ratios': [1,4]}, sharey=True)
+    fig, (spec_ax, eig_ax) = plt.subplots(nrows=1, ncols=2, figsize=(12,8), gridspec_kw={'width_ratios': [1,4]}, sharey=True)
     fig.canvas.mpl_connect('key_press_event', on_press)
-    fig.canvas.manager.set_window_title(f'Potential: {args.potential}')
+    fig.canvas.manager.set_window_title(f'Potential: {user_entered_potential}')
 
     xgrid = np.linspace(domain[0], domain[1], num_points)
 
     # spectrum plot
-    # use 1.5 because the eigenstate has spatial delocalization to the extent of the well, and must be normalized to 1
+    # use 1.5 as margin because the eigenstate has spatial delocalization to the extent of the well,
+    # and its square must be normalized to 1. This guarantees we will never have clipping around the tops and bottoms
     top = np.max(energies) + 1.5
-    ax1.set_ylabel("Energy, E")
-    ax1.set_title("Spectrum")
-    ax1.set_ylim([min(V(xgrid))-1.5, top])
+    spec_ax.set_ylabel("Energy (Hartrees)", fontsize=14)
+    spec_ax.set_title("Spectrum", fontsize=14)
+    spec_ax.set_ylim([min(V(xgrid))-1.5, top])
     # don't need the x-axis ticks and labels
-    ax1.set_xticks([])
-    ax1.set_xticklabels([])
+    spec_ax.set_xticks([])
+    spec_ax.set_xticklabels([])
 
     spectral_lines = []
     for E in energies:
-        spec = ax1.axhline(y=E, linestyle="--", color="black")
+        spec = spec_ax.axhline(y=E, linestyle="--", color="black")
         spectral_lines.append(spec)
 
+    # change the color for currently selected energy eigenstate
     spectral_lines[0].set_color("red")
 
-    ax2.set_xlabel("Position, x")
-    ax2.set_xlim([domain[0], domain[1]])
+    eig_ax.set_xlabel(r"Position ($a_0$)", fontsize=14)
+    eig_ax.set_xlim([domain[0], domain[1]])
     # plot the potential function
-    ax2.plot(xgrid, V(xgrid), color="orange", zorder=5)
+    eig_ax.plot(xgrid, V(xgrid), color="orange", zorder=5, label="Potential")
 
     # plot the ground state probability density on the eigenstates plot
     if density:
-        ax2.set_title(rf"Probability density of eigenstate $|\psi_{{{0}}}|^2$")
-        ax2.set_ylabel("Probability density")
-        current_state, = ax2.plot(xgrid, energies[0] + eigenstates[:, 0] ** 2, color="blue", zorder=10)
-        fill = ax2.fill_between(xgrid, energies[0], energies[0] + eigenstates[:, 0] ** 2, color="blue", alpha=0.4)
+        eig_ax.set_title(rf"Probability density of eigenstate $|\psi_{{{0}}}|^2$", fontsize=14)
+        current_state, = eig_ax.plot(xgrid, energies[0] + eigenstates[:, 0] ** 2, color="blue", zorder=10)
+        fill = eig_ax.fill_between(xgrid, energies[0], energies[0] + eigenstates[:, 0] ** 2, color="blue", alpha=0.4)
         fill_dict = {"fill": fill}
 
     # otherwise, animate the real and imaginary parts of the eigenstate (more involved)
     else:
-        ax2.set_title(rf"Real and imaginary parts of eigenstate $\psi_{{{0}}}$")
-        real_part, = ax2.plot(xgrid, energies[0] + eigenstates[:, 0], color="blue", zorder=10, label="Real part")
-        im_part, = ax2.plot(xgrid, energies[0] + np.zeros_like(eigenstates[:, 0]), color="pink", zorder=10, label="Imaginary part")
-        ax2.legend(loc="best")
+        eig_ax.set_title(rf"Real and imaginary parts of eigenstate $\psi_{{{0}}}$", fontsize=14)
+        real_part, = eig_ax.plot(xgrid, energies[0] + eigenstates[:, 0], color="blue", zorder=10, label="Real part")
+        im_part, = eig_ax.plot(xgrid, energies[0] + np.zeros_like(eigenstates[:, 0]), color="pink", zorder=10, label="Imaginary part")
+        eig_ax.legend(loc="best")
         tot_frames = 120
         ani = animation.FuncAnimation(fig=fig, func=update, frames=tot_frames, interval=10, blit=True)
 
@@ -182,53 +194,94 @@ def animate_figure(energies, eigenstates, V, domain, density, num_points):
 
 if __name__ == "__main__":
 
-    # ----- example potential functions ----- #
-    # harmonic oscillator
-    ho = lambda x: 0.5 * x ** 2
-    # square well
-    isw = lambda x, w, U: U * (abs(x) > w)
-    # linear potential well
-    tp = lambda x, k: k * abs(x)
-    # quartic oscillator
-    qo = lambda x: 0.5 * x ** 4
-    # anharmonic oscillator
-    aho = lambda x: 0.25 * x ** 2 + 0.5 * x ** 4
-    # double-well potential
-    dwp = lambda x, a: 0.5 * (x ** 2 - a ** 2) ** 2
-    # linear ramp
-    lr = lambda x, k: k * x * (x > 0)
-    # morse potential
-    mp = lambda x: 30 * (1 - np.exp(-1 * (x - 1))) ** 2
-    # lennard-jones potential
-    ljp = lambda x, eps, s: 4 * eps * ((s/x) ** 12 - (s/x) ** 6)
-    # asymmetric double well potential
-    adwp = lambda x: 0.5 * ((x - 2) ** 2) * ((x + 2) ** 2 + 1) 
-    # ------------------------------- #
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--use_density", action='store_true', default=False,
+                        help="Whether to display the probability density or the time evolving real and imaginary parts.")
+    args = parser.parse_args()
 
-    parser = argparse.ArgumentParser(description="Enter a one-dimensional potential")
-    parser.add_argument("--potential", metavar="0.5*x**2", type=str, required=True,
-                        help="Potential")
-    parser.add_argument("-c", "--coeffs", nargs="+", type=float, required=False,
-                        help="Superposition coefficients")
-    parser.add_argument("-d", "--domain", nargs="?", required=False, help="compact interval on which the solution is found")
-    parser.add_argument("-N", type=int, metavar=4, nargs="?", required=False, const=1, default=4,
-                        help="Number of energy states to find")
-    parser.add_argument("--num_grdpts", type=int, nargs="?", required=False, default=1000, help="Number of grid points to use")
-    parser.add_argument("--use_density", action='store_true', default=False)
-    parser.add_argument("-v", action='store_true', required=False, default=True,
-                        help="Verbose mode")
+    # for translating so that special functions can be parsed into corresponding numpy functions
+    func_dict = {
+        "sin": "np.sin",
+        "cos": "np.cos",
+        "tan": "np.tan",
+        "log": "np.log",
+        "exp": "np.exp"
+    }
+
+    # get the user's input directly instead of through argparse and also do argument checking
+    user_entered_potential = input("Enter the potential (as a function of x): ")
     
-    # get the command line arguments
-    args =parser.parse_args()
+    # replace with corresponding numpy functions
+    for keyword in func_dict:
+        user_entered_potential = user_entered_potential.replace(keyword, func_dict[keyword])
 
-    if args.coeffs:
-        coeffs = np.array(args.coeffs)
-        coeffs /= np.linalg.norm(coeffs)
+    # now get the left and right endpoints of the domain of solution
 
-    pot_func = lambda x: eval(args.potential)
-    domain_interval = np.array(args.domain.split(","), dtype=float)
+    left_end_success = False
+    while not left_end_success:
+        try:
+            left_end = input("Enter the left endpoint of the interval: ")
+            left_end = float(left_end)
+        except ValueError:
+            print("Error: left endpoint could not be converted to a real number, please try again.")
+        except Exception as e:
+            print("An error occurred:", str(e), ". Please try again.")
+        finally:
+            left_end_success = True
 
-    model = Hamiltonian(potential=pot_func, domain=domain_interval, num_points=args.num_grdpts)
+    right_end_success = False
+    while not right_end_success:
+        try:
+            right_end = input("Enter the right endpoint of the interval: ")
+            right_end = float(right_end)
+        except ValueError:
+            print("Error: right endpoint could not be converted to a real number, please try again.")
+        except Exception as e:
+            print("An error occurred:", str(e), ". Please try again.")
+        finally:
+            right_end_success = True
 
-    v, w = model.tise_solve(args.N)
-    animate_figure(v, w, V=pot_func, domain=domain_interval, density=args.use_density, num_points=args.num_grdpts)
+    domain_interval = [left_end, right_end]
+
+    # need to verify that the potential works over the domain with no singularities
+    pot_func = lambda x: eval(user_entered_potential)
+    try:
+        pot_array = pot_func(np.linspace(*domain_interval, 100))
+    except NameError:
+        raise NameError("Please check the spelling/formatting in the entered potential. Exiting..")
+    except Exception as e:
+        print("An error occurred:", str(e), ". Please double check the spelling/formatting in the entered potential. Exiting..")
+
+    # input checking for number of eigenstates to find, as well as number of grid points in discretization
+    eig_grdpts_success = False
+    while not eig_grdpts_success:
+        try:
+            num_eigenstates_to_find = input("Enter the amount of eigenstates you want to solve for: ")
+            num_grdpts = input("Enter the number of grid points in discretization: ")
+            num_eigenstates_to_find = int(num_eigenstates_to_find)
+            num_grdpts = int(num_grdpts)
+            if not isinstance(num_eigenstates_to_find, int):
+                raise ValueError("Provided number of eigenstates to find is not an integer.")
+            elif not isinstance(num_grdpts, int):
+                raise ValueError("Provided number of discretization (grid-) points is not an integer.")
+            elif num_eigenstates_to_find > num_grdpts:
+                raise ValueError(f"The maximum number of eigenstates that can be found is the number of gridpoints: {num_grdpts}.")
+        except ValueError as ve:
+            print(ve)
+        except Exception as e:
+            print("An error occurred:", str(e), ". Please try again. Exiting..")
+        finally:
+            eig_grdpts_success = True
+
+    announcement = f"""
+    Solving for {num_eigenstates_to_find} eigenstates for the potential: {user_entered_potential} on {domain_interval} with {num_grdpts} grid points..
+    """
+    print(announcement)
+    
+    model = Hamiltonian(potential=pot_func, domain=domain_interval, num_points=num_grdpts)
+    v, w = model.tise_solve(num_eigenstates_to_find)
+
+    if args.use_density:
+        print("Option '--use_density' selected. Displaying eigenstate probability densities (Born rule).")
+
+    animate_figure(v, w, V=pot_func, domain=domain_interval, density=args.use_density, num_points=num_grdpts)
