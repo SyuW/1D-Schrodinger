@@ -1,35 +1,14 @@
 # 1D-Schrodinger
-Experimenting with methods for solving the Schrodinger equation in one dimension, both time-dependent and time-independent variants.
-The motivation is to gain intuition for the dynamics of bound quantum states in 1D and also to pick up cool tricks along the way for
-solving differential equations numerically 😃!
+A script for solving the 1D Schrodinger equation for arbitrary user-specified potentials. 
 
-## First phase: Solve the 1D TISE for arbitrary potential ##
-One way to construct a time-varying quantum state is through superpositions of eigenstates of the system's Hamiltonian operator, which form a complete orthogonal basis. Looking qualitatively at how the energy eigenstate probability densities depend on potential shape is also pretty instructive. Hence,
-we need to solve the 1D time independent Schrodinger equation (TISE), a second order ODE.
+## Some methods I've tried ##
 
-Some methods I've tried:
 - Numerov's algorithm
 - Converting to a system of 1st order ODEs
 - Diagonalization approach
 
 Of the methods I've tried, **diagonalization** has been the most numerically stable as well as being pretty straightforward to implement.
 This is the approach I'll mostly likely be using moving forward for solving the 1D TISE.
-
-![Example 1](samples/linear_potential_well.png?raw=true "Linear Potential Well")
-
-## Second phase: Time evolution ##
-If the energy levels considered are smaller than the potential well depth, they are discrete, allowing us to write the time-varying state as a sum over energy eigenstates:
-
-$$
-  \psi(x,t) = \sum_{n}c_n(0)e^{iE_n{t}/\hbar}\phi_n(x)
-$$
-
-Although $\braket{x}$ and $\braket{p}$ are constant for the $\phi_n(x)$'s, in general they will be time-varying for superpositions. All that's needed is the initial vector of coefficients $c_n(0)$, which can be provided to `schrodinger.py` as a command line argument.
-
-Alternatively, we can solve the time dependent Schrodinger equation directly given some initial waveform. 
-
-## Third phase: GUI? ##
-In the future I intend to develop a GUI for the program instead of requiring command line input. I'm still trying to work out the layout of the interface.
 
 # Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
