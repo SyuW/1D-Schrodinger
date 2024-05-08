@@ -1,16 +1,14 @@
 # 1D-Schrodinger
 A script for solving the 1D Schrodinger equation for arbitrary user-specified potentials. 
 
-## Some methods I've tried ##
+# Usage
+Simply run using the command: ```python schrodinger.py```
 
-- Numerov's algorithm
-- Converting to a system of 1st order ODEs
-- Diagonalization approach
+You will be prompted to enter the potential, left endpoint, right endpoint, number of eigenstates to solve for, and number of gridpoints to use.
 
-Of the methods I've tried, **diagonalization** has been the most numerically stable as well as being pretty straightforward to implement.
-This is the approach I'll mostly likely be using moving forward for solving the 1D TISE.
+# Dependencies
 
-# Useful Links
+## Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
 - http://www.pas.rochester.edu/~tobin/notebook/2009/02/12/html/eigfunc.html. Uses the diagonalization approach for solving the 1D TISE. Finds the eigenvalues/eigenstates iteratively by applying the Hamiltonian as an iterated map acting on an initial random vector. 
 - https://github.com/FelixDesrochers/Numerov. Has an implementation of Numerov's method for solving the 1D TISE for bound states as well as pretty figures.
