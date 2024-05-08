@@ -6,7 +6,6 @@ from scipy.linalg import eigh
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-import seaborn as sns
 
 
 class Hamiltonian():
@@ -65,6 +64,18 @@ class Hamiltonian():
         print("#", "-"*75, "#")
 
         return energies[:n_eigenstates_to_find], eigenstates[:, :n_eigenstates_to_find]
+
+
+    # method for creating and saving an animation gif
+    def make_animation(self):
+
+        # time in-between transitions (5 secs)
+        time_between = 5
+
+        # build the gif
+        frames = []
+
+        return
     
 
     # method for solving the ordinary Schrodinger equation given the Hamiltonian
@@ -197,15 +208,23 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--use_density", action='store_true', default=False,
                         help="Whether to display the probability density or the time evolving real and imaginary parts.")
+    parser.add_argument("--save_gif", action='store_true', default=False,
+                        help="Whether to save the animation loop as a GIF.")
     args = parser.parse_args()
 
     # for translating so that special functions can be parsed into corresponding numpy functions
     func_dict = {
         "sin": "np.sin",
         "cos": "np.cos",
+        "sinh": "np.sinh",
+        "cosh": "np.cosh",
+        "tanh": "np.tanh",
         "tan": "np.tan",
         "log": "np.log",
-        "exp": "np.exp"
+        "log10": "np.log10",
+        "ln": "np.log",
+        "exp": "np.exp",
+        "e": "(np.e)"
     }
 
     # get the user's input directly instead of through argparse and also do argument checking
@@ -216,30 +235,24 @@ if __name__ == "__main__":
         user_entered_potential = user_entered_potential.replace(keyword, func_dict[keyword])
 
     # now get the left and right endpoints of the domain of solution
-
-    left_end_success = False
-    while not left_end_success:
+    while True:
         try:
             left_end = input("Enter the left endpoint of the interval: ")
             left_end = float(left_end)
+            break
         except ValueError:
             print("Error: left endpoint could not be converted to a real number, please try again.")
         except Exception as e:
             print("An error occurred:", str(e), ". Please try again.")
-        finally:
-            left_end_success = True
-
-    right_end_success = False
-    while not right_end_success:
+    while True:
         try:
             right_end = input("Enter the right endpoint of the interval: ")
             right_end = float(right_end)
+            break
         except ValueError:
             print("Error: right endpoint could not be converted to a real number, please try again.")
         except Exception as e:
             print("An error occurred:", str(e), ". Please try again.")
-        finally:
-            right_end_success = True
 
     domain_interval = [left_end, right_end]
 
@@ -250,11 +263,11 @@ if __name__ == "__main__":
     except NameError:
         raise NameError("Please check the spelling/formatting in the entered potential. Exiting..")
     except Exception as e:
-        print("An error occurred:", str(e), ". Please double check the spelling/formatting in the entered potential. Exiting..")
+        print("An error occurred:", str(e), ". Please double check the spelling/formatting in the entered potential before trying again. Exiting..")
+        sys.exit(1)
 
     # input checking for number of eigenstates to find, as well as number of grid points in discretization
-    eig_grdpts_success = False
-    while not eig_grdpts_success:
+    while True:
         try:
             num_eigenstates_to_find = input("Enter the amount of eigenstates you want to solve for: ")
             num_grdpts = input("Enter the number of grid points in discretization: ")
@@ -266,12 +279,13 @@ if __name__ == "__main__":
                 raise ValueError("Provided number of discretization (grid-) points is not an integer.")
             elif num_eigenstates_to_find > num_grdpts:
                 raise ValueError(f"The maximum number of eigenstates that can be found is the number of gridpoints: {num_grdpts}.")
+            break
         except ValueError as ve:
             print(ve)
+            sys.exit(1)
         except Exception as e:
             print("An error occurred:", str(e), ". Please try again. Exiting..")
-        finally:
-            eig_grdpts_success = True
+            sys.exit(1)
 
     announcement = f"""
     Solving for {num_eigenstates_to_find} eigenstates for the potential: {user_entered_potential} on {domain_interval} with {num_grdpts} grid points..
@@ -284,4 +298,10 @@ if __name__ == "__main__":
     if args.use_density:
         print("Option '--use_density' selected. Displaying eigenstate probability densities (Born rule).")
 
+    # create interactive animation
     animate_figure(v, w, V=pot_func, domain=domain_interval, density=args.use_density, num_points=num_grdpts)
+
+    # give the option to user whether to save the animation or not
+    if args.save_gif:
+        print("Option '--save_gif' selected. Saving the animation as a GIF.")
+        model.make_animation()
