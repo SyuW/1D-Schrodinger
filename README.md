@@ -6,8 +6,6 @@ Simply run using the command: ```python schrodinger.py```
 
 You will be prompted to enter the potential, left endpoint, right endpoint, number of eigenstates to solve for, and number of gridpoints to use.
 
-# Dependencies
-
 ## Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
 - http://www.pas.rochester.edu/~tobin/notebook/2009/02/12/html/eigfunc.html. Uses the diagonalization approach for solving the 1D TISE. Finds the eigenvalues/eigenstates iteratively by applying the Hamiltonian as an iterated map acting on an initial random vector. 
