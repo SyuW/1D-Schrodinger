@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from scipy.integrate import simps
+from scipy.integrate import simpson
 from scipy.linalg import eigh
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,6 +20,10 @@ class Hamiltonian():
         self.V = potential
         self.domain = domain
         self.num_points = num_points
+
+        self.xvals = None
+        self.energies = None
+        self.eigenstates = None
 
 
     # method for solving the TISE for the Hamiltonian
@@ -40,9 +44,9 @@ class Hamiltonian():
         being applied to the endpoints of the interval.  
         """
 
-        x_vals = np.linspace(self.domain[0], self.domain[1], self.num_points)
+        self.xvals = np.linspace(self.domain[0], self.domain[1], self.num_points)
 
-        dx = x_vals[1] - x_vals[0]
+        dx = self.xvals[1] - self.xvals[0]
         # off diagonals
         off = np.ones(self.num_points - 1)
         # on diagonal
@@ -51,26 +55,32 @@ class Hamiltonian():
         d_squared = 0.5 * (np.diag(off, k=1) - 2 * np.diag(on, k=0) + np.diag(off, k=-1)) / (dx ** 2)
 
         # Hamiltonian
-        H = -d_squared + np.diag(self.V(x_vals))
+        H = -d_squared + np.diag(self.V(self.xvals))
 
         # solve for eigenvalues/eigenstates and sort in order of increasing energy
-        energies, eigenstates = eigh(a=H, subset_by_index=[0,n_eigenstates_to_find-1])
+        self.energies, self.eigenstates = eigh(a=H, subset_by_index=[0,n_eigenstates_to_find-1])
 
         # normalize with simpson's rule
         print("#", "-"*30, "Energy Levels", "-"*30, "#")
         for ii in range(n_eigenstates_to_find):
-            eigenstates[:, ii] /= np.sqrt(simps(eigenstates[:, ii] ** 2, x=x_vals))
-            print(f"Energy Level {ii}: {energies[ii]}")
+            self.eigenstates[:, ii] /= np.sqrt(simpson(self.eigenstates[:, ii] ** 2, x=self.xvals))
+            print(f"Energy Level {ii}: {self.energies[ii]}")
         print("#", "-"*75, "#")
 
-        return energies[:n_eigenstates_to_find], eigenstates[:, :n_eigenstates_to_find]
+        return self.energies[:n_eigenstates_to_find], self.eigenstates[:, :n_eigenstates_to_find]
 
 
-    # method for creating and saving an animation gif
+    # method for creating and saving an animation gif that moves up the determined energies and
+    # eigenstates and shows the oscillation of the real and imaginary parts
     def make_animation(self):
 
-        # time in-between transitions (5 secs)
-        time_between = 5
+        # set up the figure and axes
+        fig, (spec_ax, eig_ax) = plt.subplots(nrows=1, ncols=2, figsize=(12,8),
+                                              gridspec_kw={'width_ratios': [1,4]}, sharey=True)
+        fig.canvas.manager.set_window_title(f"Potential: ")
+
+        # time in-between transitions (6 secs)
+        time_between = 6
 
         # build the gif
         frames = []
@@ -154,7 +164,8 @@ def animate_figure(energies, eigenstates, V, domain, density, num_points):
         return real_part, im_part
 
     # set up the figure and axes
-    fig, (spec_ax, eig_ax) = plt.subplots(nrows=1, ncols=2, figsize=(12,8), gridspec_kw={'width_ratios': [1,4]}, sharey=True)
+    fig, (spec_ax, eig_ax) = plt.subplots(nrows=1, ncols=2, figsize=(12,8),
+                                          gridspec_kw={'width_ratios': [1,4]}, sharey=True)
     fig.canvas.mpl_connect('key_press_event', on_press)
     fig.canvas.manager.set_window_title(f'Potential: {user_entered_potential}')
 
@@ -173,7 +184,7 @@ def animate_figure(energies, eigenstates, V, domain, density, num_points):
 
     spectral_lines = []
     for E in energies:
-        spec = spec_ax.axhline(y=E, linestyle="--", color="black")
+        spec = spec_ax.axhline(y=E, linestyle="-", color="black")
         spectral_lines.append(spec)
 
     # change the color for currently selected energy eigenstate
