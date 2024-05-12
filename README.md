@@ -4,7 +4,7 @@ A script for solving the 1D time-independent Schrodinger equation for arbitrary 
 Produces an ✨interative✨ animated plot for viewing the energy spectrum and eigenstates. Simply use the left and right arrow keys to toggle between the different excited modes of the particle.  
 
 # Usage
-Simply run using the command: ```python schrodinger.py```
+To run the script, enter the command: ```python main.py```. 
 
 You will be prompted to enter the potential, left endpoint, right endpoint, number of eigenstates to solve for, and number of gridpoints to use.
 
