@@ -1,5 +1,5 @@
 # 1D-Schrodinger
-A script for solving the 1D Schrodinger equation for arbitrary user-specified potentials.
+A script for solving the 1D time-independent Schrodinger equation for arbitrary user-specified potentials, giving the quantized energy levels of a trapped quantum particle. Produces an ✨interative✨ animated plot for viewing the energy spectrum and eigenstates. Simply use the left and right arrow keys to toggle between the different excited modes of the particle.  
 
 # Usage
 Simply run using the command: ```python schrodinger.py```
