@@ -8,7 +8,7 @@ You will be prompted to enter the potential, left endpoint, right endpoint, numb
 
 Example below for an asymmetric double well potential of the form ```0.5 * ((x - 2) ** 2) * ((x + 2) ** 2 + 1)```. Note the near-degeneracy of the 3rd and 4th energy levels:
 
-![Asymmetric double well](https://github.com/SyuW/1D-Schrodinger/blob/master/demos/animation.gif)
+![Asymmetric double well](https://github.com/SyuW/1D-Schrodinger/blob/master/demos/double_well.gif)
 
 ## Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
