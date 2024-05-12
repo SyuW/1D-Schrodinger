@@ -1,10 +1,14 @@
 # 1D-Schrodinger
-A script for solving the 1D Schrodinger equation for arbitrary user-specified potentials. 
+A script for solving the 1D Schrodinger equation for arbitrary user-specified potentials.
 
 # Usage
 Simply run using the command: ```python schrodinger.py```
 
 You will be prompted to enter the potential, left endpoint, right endpoint, number of eigenstates to solve for, and number of gridpoints to use.
+
+Example below for an asymmetric double well potential. Note the near-degeneracy of the 3rd and 4th energy levels:
+
+![Asymmetric double well](https://github.com/SyuW/1D-Schrodinger/blob/master/demos/animation.gif)
 
 ## Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
