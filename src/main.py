@@ -12,9 +12,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--use_density", action='store_true', default=False,
-                        help="Whether to display the probability density or the time evolving real and imaginary parts.")
+                        help="Display the probability density of the stationary states instead.")
     parser.add_argument("--save_gif", action='store_true', default=False,
-                        help="Whether to save the animation loop as a GIF.")
+                        help="Save the animation loop as a GIF.")
+    parser.add_argument("--dark_mode", action='store_true', default=False,
+                        help="Toggle dark mode for plot")
     args = parser.parse_args()
 
     # for translating so that special functions can be parsed into corresponding numpy functions
@@ -103,15 +105,25 @@ if __name__ == "__main__":
     if args.use_density:
         print("Option '--use_density' selected. Displaying eigenstate probability densities (Born rule).")
 
-    fig = StationaryEigFigure(energies=es, eigenstates=eigs, V=pot_func, 
-                              domain=domain_interval, density=args.use_density, num_points=num_grdpts)
+    fig = StationaryEigFigure(energies=es, eigenstates=eigs, Vname=user_entered_potential, 
+                              domain=domain_interval, density=args.use_density,
+                              num_points=num_grdpts, darkmode=args.dark_mode)
 
-    fig.begin_animate()
-
-    # create interactive animation
-    # animate_figure(es, eigs, V=pot_func, domain=domain_interval, density=args.use_density, num_points=num_grdpts)
+    fig.begin_interactive_animate()
 
     # give the option to user whether to save the animation or not
-    # if args.save_gif:
-    #     print("Option '--save_gif' selected. Saving the animation as a GIF.")
-    #     model.make_animation()
+    if args.save_gif:
+        print("Option '--save_gif' selected. Saving the animation as a GIF.")
+        fig.make_gif()
+    else:
+        while True:
+            save_gif_input = input("Do you want to save the animation as a GIF? Answer (y/n): ")
+            if 'n' in save_gif_input:
+                print("Exiting without making GIF..")
+                break
+            elif 'y' in save_gif_input:
+                print("Affirmative. Making GIF..")
+                fig.make_gif()
+                break
+            else:
+                print("Invalid option given. Please try again.")
