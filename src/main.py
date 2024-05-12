@@ -123,7 +123,7 @@ if __name__ == "__main__":
                 break
             elif 'y' in save_gif_input:
                 print("Affirmative. Making GIF..")
-                fig.make_gif()
+                fig.make_gif(max_eigenstates=10)
                 break
             else:
                 print("Invalid option given. Please try again.")

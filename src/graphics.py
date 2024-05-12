@@ -178,8 +178,8 @@ class StationaryEigFigure:
         self.fps = fps
         self.seconds_per_eigenstate = seconds_per_eigenstate
 
-        if not max_eigenstates:
-            max_eigenstates = len(self.energies)
+        if not max_eigenstates or (self.num_eigenstates < max_eigenstates):
+            max_eigenstates = self.num_eigenstates
 
         gif_total_frames = fps * seconds_per_eigenstate * max_eigenstates
 
@@ -187,6 +187,6 @@ class StationaryEigFigure:
                                                frames=gif_total_frames, 
                                                interval=1/fps * 1000, blit=True)
 
-        ani.save(filename="test.gif", writer="Pillow")
+        ani.save(filename="../gifs/animation.gif", writer="Pillow")
 
         plt.show()
