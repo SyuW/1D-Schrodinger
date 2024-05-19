@@ -1,6 +1,8 @@
 # 1D-Schrodinger
 A script for solving the 1D time-independent Schrodinger equation for arbitrary user-specified potentials, giving the quantized energy levels of a trapped quantum particle.
 
+Solver uses a finite difference method that converts the time-independent Schrodinger equation into a finite dimensional eigenvalue problem, which is tackled using the LAPACK diagonalization algorithm invoked with `scipy.linalg.eigh`. 
+
 Produces an ✨interative✨ animated plot for viewing the energy spectrum and eigenstates. Simply use the left and right arrow keys to toggle between the different excited modes of the particle.  
 
 # Usage
