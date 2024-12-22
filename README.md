@@ -15,7 +15,7 @@ An example is shown below for an asymmetric double well potential of the form ``
 ![Asymmetric double well](https://github.com/SyuW/1D-Schrodinger/blob/master/demos/double_well.gif)
 
 # Notes
-Experimenting with different potentials, one quickly realizes how useful the prototypical examples of harmonic oscillator, square well, etc.. and that more complicated potentials can be stitched together from simpler potentials (the WKB approximation glues together the solutions in each region...). 
+Experimenting with different potentials, one quickly realizes how useful the prototypical examples are of harmonic oscillator, square well, etc.. and that more complicated potentials can be stitched together from simpler potentials (the WKB approximation glues together the solutions in each region...). 
 
 ## Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
