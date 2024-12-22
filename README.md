@@ -14,6 +14,9 @@ An example is shown below for an asymmetric double well potential of the form ``
 
 ![Asymmetric double well](https://github.com/SyuW/1D-Schrodinger/blob/master/demos/double_well.gif)
 
+# Notes
+Experimenting with different potentials, one quickly realizes how useful the prototypical examples of harmonic oscillator, square well, etc.. and that more complicated potentials can be stitched together from simpler potentials (the WKB approximation glues together the solutions in each region...). 
+
 ## Useful Links
 A collection of resources I referenced and took inspiration from throughout this work. Check them out!
 - http://www.pas.rochester.edu/~tobin/notebook/2009/02/12/html/eigfunc.html. Uses the diagonalization approach for solving the 1D TISE. Finds the eigenvalues/eigenstates iteratively by applying the Hamiltonian as an iterated map acting on an initial random vector. The eigenvectors can be thought of as fixed points of the iterated map (modulo scaling), and the initial vector must be in the basin of attraction for one of the fixed points. 
