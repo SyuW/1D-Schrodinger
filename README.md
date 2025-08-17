@@ -10,7 +10,7 @@ To run the script, enter the command: ```python main.py```.
 
 You will be prompted to enter the potential, left endpoint, right endpoint, number of eigenstates to solve for, and number of gridpoints to use.
 
-An example is shown below for an asymmetric double well potential of the form ```0.5 * ((x - 2) ** 2) * ((x + 2) ** 2 + 1)```. Note the small energy gap between the 3rd and 4th energy levels (contributions from quantum tunnelling AKA instantons breaks the degeneracy):
+An example is shown below for an asymmetric double well potential of the form ```0.5 * ((x - 2) ** 2) * ((x + 2) ** 2 + 1)```. Note the small energy gap between the 3rd and 4th energy levels (contributions from quantum tunnelling i.e. instantons breaks the degeneracy):
 
 ![Asymmetric double well](https://github.com/SyuW/1D-Schrodinger/blob/master/demos/double_well.gif)
 
